@@ -1,4 +1,4 @@
-# SMS gateway for HK mxtong
+# SMS gateway for Mxtong
 
 [![Latest Stable Version](https://poser.pugx.org/huangdijia/laravel-mxtong/version.png)](https://packagist.org/packages/huangdijia/laravel-mxtong)
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-mxtong/d/total.png)](https://packagist.org/packages/huangdijia/laravel-mxtong)
