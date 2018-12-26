@@ -1,6 +1,6 @@
 <?php
 
-namespace Huangdijia\Mitake;
+namespace Huangdijia\Mxtong;
 
 use Exception;
 
