@@ -15,16 +15,27 @@ class Mxtong
 
     public function __construct($config)
     {
-        if (empty($config['username'])) {
-            $this->error = "config mxtong.username is undefined";
+        if (empty($config['user_id'])) {
+            $this->error = "config mxtong.user_id is undefined";
             $this->errno = 101;
             $this->init  = false;
+            
             return;
         }
+
+        if (empty($config['account'])) {
+            $this->error = "config mxtong.account is undefined";
+            $this->errno = 101;
+            $this->init  = false;
+            
+            return;
+        }
+
         if (empty($config['password'])) {
             $this->error = "config mxtong.password is undefined";
             $this->errno = 102;
             $this->init  = false;
+            
             return;
         }
 
