@@ -2,6 +2,8 @@
 
 namespace Huangdijia\Mxtong;
 
+use Huangdijia\Curl\Facades\Curl;
+
 class Mxtong
 {
     private $config = [];
@@ -19,7 +21,7 @@ class Mxtong
             $this->error = "config mxtong.user_id is undefined";
             $this->errno = 101;
             $this->init  = false;
-            
+
             return;
         }
 
@@ -27,7 +29,7 @@ class Mxtong
             $this->error = "config mxtong.account is undefined";
             $this->errno = 101;
             $this->init  = false;
-            
+
             return;
         }
 
@@ -35,7 +37,7 @@ class Mxtong
             $this->error = "config mxtong.password is undefined";
             $this->errno = 102;
             $this->init  = false;
-            
+
             return;
         }
 
