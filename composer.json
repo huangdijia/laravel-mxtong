@@ -32,7 +32,10 @@
         "laravel": {
             "providers": [
                 "Huangdijia\\Mxtong\\MxtongServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Mxtong": "Huangdijia\\Mxtong\\Facades\\Mxtong"
+            }
         }
     }
 }
