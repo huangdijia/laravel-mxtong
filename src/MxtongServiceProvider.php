@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 class MxtongServiceProvider extends ServiceProvider
 {
-    protected $defer = true;
+    // protected $defer = true;
 
     protected $commands = [
         Console\InstallCommand::class,

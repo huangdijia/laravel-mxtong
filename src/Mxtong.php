@@ -54,7 +54,7 @@ class Mxtong
             'PostFixNumber' => $this->config['post_fix_number'] ?? 1,
         ];
 
-        $response = Http::retries(3, 100)
+        $response = Http::asForm()
             ->post($this->config['api'], $data)
             ->throw();
 
@@ -72,7 +72,7 @@ class Mxtong
         }
 
         throw_if(false === $XmlObj || !is_object($XmlObj),
-            new Exception('Parse xml failed:' . $e->getMessage(), 402)
+            new Exception('Parse xml failed', 402)
         );
 
         throw_if(!isset($XmlObj->RetCode) || $XmlObj->RetCode != 'Sucess',
