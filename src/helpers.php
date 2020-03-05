@@ -1,14 +1,14 @@
 <?php
-if (!function_exists('mitake')) {
-    function mitake()
+if (!function_exists('mxtong')) {
+    function mxtong()
     {
-        return app('sms.mitake');
+        return app('sms.mxtong');
     }
 }
 
-if (!function_exists('mitake_send')) {
-    function mitake_send($mobile = '', $message = '')
+if (!function_exists('mxtong_send')) {
+    function mxtong_send($mobile = '', $message = '')
     {
-        return app('sms.mitake')->send($mobile, $message) ?: app('sms.mitake')->getError();
+        return app('sms.mxtong')->send($mobile, $message);
     }
 }

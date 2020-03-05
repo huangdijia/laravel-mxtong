@@ -2,65 +2,47 @@
 
 namespace Huangdijia\Mxtong;
 
-use Huangdijia\Curl\Facades\Curl;
+use Exception;
+use Illuminate\Support\Facades\Http;
 
 class Mxtong
 {
     private $config = [];
-    private $apis   = [
-        'send_sms'      => 'http://61.143.63.169:8080/GateWay/Services.asmx/DirectSend',
-        'check_accinfo' => '',
-    ];
-    private $init = true;
-    private $errno;
-    private $error;
 
-    public function __construct($config)
+    /**
+     * Construct
+     * @param array $config
+     * @return void
+     * @throws Exception
+     */
+    public function __construct(array $config = [])
     {
-        if (empty($config['user_id'])) {
-            $this->error = "config mxtong.user_id is undefined";
-            $this->errno = 101;
-            $this->init  = false;
-
-            return;
-        }
-
-        if (empty($config['account'])) {
-            $this->error = "config mxtong.account is undefined";
-            $this->errno = 101;
-            $this->init  = false;
-
-            return;
-        }
-
-        if (empty($config['password'])) {
-            $this->error = "config mxtong.password is undefined";
-            $this->errno = 102;
-            $this->init  = false;
-
-            return;
-        }
-
         $this->config = $config;
+
+        // fix
+        if (!empty($this->config['api'])) {
+            $this->config['api'] = 'http://61.143.63.169:8080/GateWay/Services.asmx/DirectSend';
+        }
     }
 
+    /**
+     * Send
+     * @param string $mobile
+     * @param string $message
+     * @return bool
+     */
     public function send($mobile = '', $message = '')
     {
-        if (!$this->init) {
-            return false;
-        }
+        throw_if(empty($this->config['user_id']), new Exception("Config 'mxtong.user_id' is undefined", 101));
 
-        // 默认错误信息
-        $this->error = null;
-        $this->errno = null;
+        throw_if(empty($this->config['account']), new Exception("Config 'mxtong.account' is undefined", 102));
 
-        if (!$this->checkMobile($mobile)) {
-            return false;
-        }
+        throw_if(empty($this->config['password']), new Exception("Config 'mxtong.password' is undefined", 103));
 
-        if (!$this->checkMessage($message)) {
-            return false;
-        }
+        throw_if(!$this->checkMobile($mobile), new Exception("mobile is error", 1));
+
+        throw_if(!$this->checkMessage($message), new Exception("message is error", 1));
+
         $data = [
             'Phones'        => $mobile,
             'Content'       => $message,
@@ -72,75 +54,53 @@ class Mxtong
             'PostFixNumber' => $this->config['post_fix_number'] ?? 1,
         ];
 
-        $data     = http_build_query($data);
-        $url      = $this->apis['send_sms'] ?? '';
-        $response = Curl::Post($url, $data);
+        $response = Http::retries(3, 100)
+            ->post($this->config['api'], $data)
+            ->throw();
 
-        if (false === $response) {
-            $this->error = '請求失敗';
-            $this->errno = 301;
-
-            return false;
-        }
-
-        if ($response == '') {
-            $this->error = '返回結果為空';
-            $this->errno = 401;
-
-            return false;
+        if ($response->body() == '') {
+            throw new Exception("Response body is empty!", 401);
         }
 
         $XmlObj = false;
 
         try {
-            $response = preg_replace('/<ROOT[^>]+>/', '<ROOT>', $response);
+            $response = preg_replace('/<ROOT[^>]+>/', '<ROOT>', $response->body());
             $XmlObj   = simplexml_load_string($response);
         } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            $this->errno = 402;
-
-            return false;
+            throw new Exception('Parse xml error:' . $e->getMessage(), 402);
         }
 
-        if (false === $XmlObj || !is_object($XmlObj)) {
-            $this->error = '返回結果解析錯誤';
-            $this->errno = 402;
+        throw_if(false === $XmlObj || !is_object($XmlObj),
+            new Exception('Parse xml failed:' . $e->getMessage(), 402)
+        );
 
-            return false;
-        }
+        throw_if(!isset($XmlObj->RetCode) || $XmlObj->RetCode != 'Sucess',
+            new Exception('Sended failed:' . $XmlObj->Message, 402)
+        );
 
-        if (!isset($XmlObj->RetCode) || $XmlObj->RetCode != 'Sucess') {
-            $this->error = $XmlObj->Message;
-            $this->errno = 402;
-
-            return false;
-        }
-
-        if (isset($XmlObj->OKPhoneCounts) && 0 == $XmlObj->OKPhoneCounts) {
-            $this->error = $XmlObj->Message;
-            $this->errno = 403;
-
-            return false;
-        }
+        throw_if(isset($XmlObj->OKPhoneCounts) && 0 == $XmlObj->OKPhoneCounts,
+            new Exception('Sended all failed:' . $XmlObj->Message, 403)
+        );
 
         return true;
     }
 
-    public function getError()
-    {
-        return $this->error;
-    }
-
-    public function getErrno()
-    {
-        return $this->errno;
-    }
-
+    /**
+     * Check mobile
+     * @param string $mobile
+     * @return bool
+     */
     private function checkMobile($mobile = '')
     {
-        return preg_match('/^1\d{10}$/', $mobile);
+        return preg_match('/^1\d{10}$/', $mobile) ? true : false;
     }
 
+    /**
+     * Check message
+     * @param string $message
+     * @return bool
+     */
     private function checkMessage($message = '')
     {
         return !empty($message) ? true : false;

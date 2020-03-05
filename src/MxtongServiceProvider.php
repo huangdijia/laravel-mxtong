@@ -2,8 +2,6 @@
 
 namespace Huangdijia\Mxtong;
 
-use Huangdijia\Mxtong\Console\InfoCommand;
-use Huangdijia\Mxtong\Console\SendCommand;
 use Illuminate\Support\ServiceProvider;
 
 class MxtongServiceProvider extends ServiceProvider
@@ -11,8 +9,8 @@ class MxtongServiceProvider extends ServiceProvider
     protected $defer = true;
 
     protected $commands = [
-        SendCommand::class,
-        // InfoCommand::class,
+        Console\InstallCommand::class,
+        Console\SendCommand::class,
     ];
 
     public function boot()
@@ -20,14 +18,14 @@ class MxtongServiceProvider extends ServiceProvider
         $this->bootConfig();
 
         if ($this->app->runningInConsole()) {
-            $this->publishes([__DIR__ . '/../config/config.php' => $this->app->basePath('config/mxtong.php')]);
+            $this->publishes([__DIR__ . '/../config/mxtong.php' => $this->app->basePath('config/mxtong.php')], 'config');
         }
     }
 
     public function register()
     {
         $this->app->singleton(Mxtong::class, function () {
-            return new Mxtong(config('mxtong'));
+            return new Mxtong($this->app['config']->get('mxtong'));
         });
 
         $this->app->alias(Mxtong::class, 'sms.mxtong');
@@ -37,9 +35,7 @@ class MxtongServiceProvider extends ServiceProvider
 
     public function bootConfig()
     {
-        $path = __DIR__ . '/../config/config.php';
-
-        $this->mergeConfigFrom($path, 'mxtong');
+        $this->mergeConfigFrom(__DIR__ . '/../config/mxtong.php', 'mxtong');
     }
 
     public function provides()

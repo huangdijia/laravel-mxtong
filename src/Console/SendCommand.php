@@ -13,13 +13,14 @@ class SendCommand extends Command
     {
         $mobile  = $this->argument('mobile');
         $message = $this->argument('message');
-        $mxtong  = app('sms.mxtong');
 
-        if (!$mxtong->send($mobile, $message)) {
-            $this->error($mxtong->getError(), 1);
+        try {
+            $this->laravel->make('sms.mxtong')->send($mobile, $message);
+        } catch (\Exception $e) {
+            $this->error($e->getMessage(), 1);
             return;
         }
 
-        $this->info('send success!', 0);
+        $this->info('Send success!', 0);
     }
 }
